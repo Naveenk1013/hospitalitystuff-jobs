@@ -1,80 +1,224 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin | Post Job</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard | Hospitality Jobs</title>
+  <link rel="stylesheet" href="/static/css/main.css" />
   <style>
+    /* Admin-specific styles (keeping Dimension theme consistency) */
     body {
-      font-family: Arial, sans-serif;
-      background: #eef3f7;
-      margin: 0;
-      padding: 20px;
+      background: #1b1f22;
+      color: #fff;
+      font-family: "Source Sans Pro", sans-serif;
+      padding: 2rem;
     }
-    h1 {
+    header {
       text-align: center;
-      color: #333;
+      margin-bottom: 2rem;
     }
+    header h1 {
+      color: #4acaa8;
+      margin-bottom: 0.5rem;
+    }
+    header p {
+      font-size: 1rem;
+      color: rgba(255,255,255,0.7);
+    }
+
+    /* Form styling */
     form {
-      max-width: 500px;
-      margin: 0 auto;
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      background: rgba(255,255,255,0.05);
+      border-radius: 12px;
+      padding: 2rem;
+      max-width: 700px;
+      margin: 0 auto 3rem auto;
+      box-shadow: 0 0 20px rgba(0,0,0,0.4);
     }
-    input, textarea, button {
+    form input, form textarea, form button {
       width: 100%;
-      padding: 10px;
-      margin-top: 10px;
+      margin: 0.6rem 0;
+      padding: 0.9rem;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 6px;
+      color: white;
       font-size: 1rem;
     }
-    button {
+    form button {
       background: #4acaa8;
-      color: white;
       border: none;
+      color: #fff;
+      font-weight: bold;
       cursor: pointer;
+      transition: 0.3s;
+    }
+    form button:hover {
+      background: #3bb694;
+    }
+
+    /* Job list */
+    #jobs-list {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .job-card {
+      background: rgba(255,255,255,0.07);
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      border-left: 4px solid #4acaa8;
+      transition: 0.2s;
+    }
+    .job-card:hover {
+      background: rgba(255,255,255,0.1);
+    }
+    .job-card h3 {
+      margin: 0 0 0.3rem 0;
+      color: #fff;
+    }
+    .job-card p {
+      margin: 0.2rem 0;
+      color: rgba(255,255,255,0.8);
+    }
+    .actions {
+      margin-top: 0.8rem;
+    }
+    .actions button {
+      background: #4acaa8;
+      border: none;
+      color: #fff;
+      padding: 0.5rem 0.9rem;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 0.5rem;
+      transition: 0.2s;
+    }
+    .actions button:hover {
+      background: #3bb694;
+    }
+    .actions .delete {
+      background: #e74c3c;
+    }
+    .actions .delete:hover {
+      background: #c0392b;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      color: rgba(255,255,255,0.5);
+      font-size: 0.9rem;
     }
   </style>
 </head>
 <body>
-  <h1>Post a New Job</h1>
+  <header>
+    <h1>Hospitality Jobs Admin</h1>
+    <p>Manage job listings efficiently and professionally</p>
+  </header>
+
+  <!-- Job Posting Form -->
   <form id="job-form">
     <input type="password" id="password" placeholder="Admin Password" required>
     <input type="text" id="title" placeholder="Job Title" required>
     <input type="text" id="company" placeholder="Company Name" required>
     <input type="text" id="location" placeholder="Job Location" required>
-    <textarea id="description" placeholder="Job Description" rows="5" required></textarea>
+    <textarea id="description" placeholder="Job Description" rows="4" required></textarea>
     <input type="url" id="link" placeholder="Application Link (Optional)">
     <button type="submit">Post Job</button>
   </form>
 
+  <!-- Job List -->
+  <section id="jobs-list">
+    <h2 style="color:#4acaa8;text-align:center;">Existing Jobs</h2>
+    <div id="jobs-container"></div>
+  </section>
+
+  <footer>
+    © 2025 Hospitality Stuff | Powered by Lancealot
+  </footer>
+
   <script>
-    document.getElementById("job-form").addEventListener("submit", async (e) => {
+    async function fetchJobs() {
+      const res = await fetch('/jobs');
+      const jobs = await res.json();
+      const container = document.getElementById('jobs-container');
+      container.innerHTML = '';
+      jobs.forEach((job, index) => {
+        const div = document.createElement('div');
+        div.className = 'job-card';
+        div.innerHTML = `
+          <h3>${job.title}</h3>
+          <p><strong>Company:</strong> ${job.company}</p>
+          <p><strong>Location:</strong> ${job.location}</p>
+          <p>${job.description}</p>
+          ${job.link ? `<a href="${job.link}" target="_blank" style="color:#4acaa8;">Apply Link</a>` : ''}
+          <div class="actions">
+            <button onclick="editJob(${index})">Edit</button>
+            <button class="delete" onclick="deleteJob(${index})">Delete</button>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    document.getElementById('job-form').addEventListener('submit', async (e) => {
       e.preventDefault();
-
       const job = {
-        password: document.getElementById("password").value,
-        title: document.getElementById("title").value,
-        company: document.getElementById("company").value,
-        location: document.getElementById("location").value,
-        description: document.getElementById("description").value,
-        link: document.getElementById("link").value
+        password: document.getElementById('password').value,
+        title: document.getElementById('title').value,
+        company: document.getElementById('company').value,
+        location: document.getElementById('location').value,
+        description: document.getElementById('description').value,
+        link: document.getElementById('link').value
       };
-
-      const response = await fetch("/jobs", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/jobs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(job)
       });
-
       const result = await response.json();
       alert(result.message || result.error);
-
       if (result.message) {
-        document.getElementById("job-form").reset();
+        e.target.reset();
+        fetchJobs();
       }
     });
+
+    async function deleteJob(index) {
+      const password = prompt("Enter admin password to delete this job:");
+      if (!password) return;
+      const response = await fetch(`/jobs/${index}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password })
+      });
+      const result = await response.json();
+      alert(result.message || result.error);
+      fetchJobs();
+    }
+
+    async function editJob(index) {
+      const password = prompt("Enter admin password to edit this job:");
+      if (!password) return;
+      const title = prompt("Enter new job title:");
+      const company = prompt("Enter new company name:");
+      const location = prompt("Enter new location:");
+      const description = prompt("Enter new description:");
+      const link = prompt("Enter new application link (optional):");
+      const updatedJob = { password, title, company, location, description, link };
+      const response = await fetch(`/jobs/${index}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedJob)
+      });
+      const result = await response.json();
+      alert(result.message || result.error);
+      fetchJobs();
+    }
+
+    fetchJobs();
   </script>
 </body>
 </html>

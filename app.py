@@ -8,19 +8,18 @@ app = Flask(__name__)
 CORS(app)
 
 DATA_FILE = "jobs.json"
-ADMIN_PASSWORD = "admin123"  # You can change this later
+ADMIN_PASSWORD = "admin123"  # Change this for production
 
 # Ensure jobs file exists
 if not os.path.exists(DATA_FILE):
     with open(DATA_FILE, "w") as f:
         json.dump([], f)
 
-# Load all job postings
+# Utility functions
 def load_jobs():
     with open(DATA_FILE, "r") as f:
         return json.load(f)
 
-# Save job postings
 def save_jobs(jobs):
     with open(DATA_FILE, "w") as f:
         json.dump(jobs, f, indent=4)
@@ -37,19 +36,18 @@ def homepage():
 def admin_page():
     return render_template("admin.html")
 
-# Route to get all job listings (visible to everyone)
+# Fetch all jobs
 @app.route("/jobs", methods=["GET"])
 def get_jobs():
     jobs = load_jobs()
     return jsonify(jobs)
 
-# Route to post a new job (admin only)
+# Create new job (admin only)
 @app.route("/jobs", methods=["POST"])
 def add_job():
     data = request.get_json()
     password = data.get("password")
 
-    # Check if admin password matches
     if password != ADMIN_PASSWORD:
         return jsonify({"error": "Unauthorized access"}), 403
 
@@ -67,6 +65,54 @@ def add_job():
     save_jobs(jobs)
 
     return jsonify({"message": "Job posted successfully", "job": job}), 201
+
+
+# Update existing job (admin only)
+@app.route("/jobs/<int:index>", methods=["PUT"])
+def update_job(index):
+    data = request.get_json()
+    password = data.get("password")
+
+    if password != ADMIN_PASSWORD:
+        return jsonify({"error": "Unauthorized access"}), 403
+
+    jobs = load_jobs()
+
+    if index < 0 or index >= len(jobs):
+        return jsonify({"error": "Job not found"}), 404
+
+    # Update job fields
+    jobs[index].update({
+        "title": data.get("title", jobs[index]["title"]),
+        "company": data.get("company", jobs[index]["company"]),
+        "location": data.get("location", jobs[index]["location"]),
+        "description": data.get("description", jobs[index]["description"]),
+        "link": data.get("link", jobs[index].get("link")),
+        "updated_on": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    })
+
+    save_jobs(jobs)
+    return jsonify({"message": "Job updated successfully", "job": jobs[index]})
+
+
+# Delete existing job (admin only)
+@app.route("/jobs/<int:index>", methods=["DELETE"])
+def delete_job(index):
+    data = request.get_json()
+    password = data.get("password")
+
+    if password != ADMIN_PASSWORD:
+        return jsonify({"error": "Unauthorized access"}), 403
+
+    jobs = load_jobs()
+
+    if index < 0 or index >= len(jobs):
+        return jsonify({"error": "Job not found"}), 404
+
+    deleted_job = jobs.pop(index)
+    save_jobs(jobs)
+
+    return jsonify({"message": f"Job '{deleted_job['title']}' deleted successfully"})
 
 
 # ---------------------------
