@@ -3,59 +3,189 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Job Board | HospitalityStuff</title>
+  <title>Hospitality Jobs Portal</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
+
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #f4f4f4;
-      margin: 0;
-      padding: 20px;
+      background: #1b1f22;
+      color: #fff;
+      font-family: "Source Sans Pro", sans-serif;
+      padding: 2rem;
     }
-    h1 {
+
+    header {
       text-align: center;
-      color: #333;
+      margin-bottom: 2rem;
     }
-    .job {
-      background: white;
-      padding: 15px;
+
+    header h1 {
+      font-size: 2.2rem;
+      text-transform: uppercase;
+      letter-spacing: 0.4rem;
+      color: #fff;
+    }
+
+    header p {
+      opacity: 0.7;
+      letter-spacing: 0.1rem;
+      font-size: 1rem;
+    }
+
+    .search-container {
+      text-align: center;
+      margin: 2rem auto;
+      max-width: 500px;
+    }
+
+    .search-container input {
+      width: 100%;
+      padding: 0.8rem;
+      border: 1px solid #fff;
+      background: transparent;
+      border-radius: 4px;
+      color: #fff;
+      font-size: 1rem;
+      outline: none;
+    }
+
+    .search-container input:focus {
+      background: rgba(255, 255, 255, 0.075);
+      box-shadow: 0 0 0 1px #fff;
+    }
+
+    .jobs-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .job-card {
+      background-color: rgba(27, 31, 34, 0.85);
+      border: 1px solid #fff;
       border-radius: 6px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      margin-bottom: 15px;
+      padding: 1.5rem;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
-    .timestamp {
-      font-size: 0.85rem;
-      color: #666;
+
+    .job-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.15);
+    }
+
+    .job-card h2 {
+      font-size: 1.2rem;
+      color: #8dfc8d;
+      margin-bottom: 0.5rem;
+    }
+
+    .job-card p {
+      margin: 0.3rem 0;
+      font-size: 0.9rem;
+      opacity: 0.9;
+    }
+
+    .job-card a {
+      display: inline-block;
+      margin-top: 0.8rem;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      background-color: #fff;
+      color: #1b1f22;
+      text-decoration: none;
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.8rem;
+      letter-spacing: 0.1rem;
+    }
+
+    .job-card a:hover {
+      background-color: #ccc;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      font-size: 0.75rem;
+      opacity: 0.7;
+      letter-spacing: 0.1rem;
+      text-transform: uppercase;
+    }
+
+    @media (max-width: 500px) {
+      header h1 {
+        font-size: 1.6rem;
+        letter-spacing: 0.2rem;
+      }
     }
   </style>
 </head>
+
 <body>
-  <h1>Available Job Opportunities</h1>
-  <div id="job-list"></div>
+  <header>
+    <h1>Hospitality Jobs Portal</h1>
+    <p>Trusted Source for Genuine Hospitality Career Opportunities</p>
+  </header>
+
+  <div class="search-container">
+    <input type="text" id="searchInput" placeholder="Search by job title, company, or location...">
+  </div>
+
+  <div class="jobs-container" id="jobsContainer">
+    <p style="text-align:center; opacity:0.7;">Loading job listings...</p>
+  </div>
+
+  <footer>
+    <p>Powered by <strong>HospitalityStuff</strong> | Connecting Talent with Opportunity</p>
+  </footer>
 
   <script>
-    async function loadJobs() {
-      const response = await fetch('/jobs');
-      const jobs = await response.json();
-      const jobList = document.getElementById('job-list');
-      jobList.innerHTML = '';
+    const jobsContainer = document.getElementById("jobsContainer");
+    const searchInput = document.getElementById("searchInput");
+    let jobsData = [];
 
-      if (jobs.length === 0) {
-        jobList.innerHTML = '<p>No jobs available right now.</p>';
-      } else {
-        jobs.reverse().forEach(job => {
-          jobList.innerHTML += `
-            <div class="job">
-              <h3>${job.title}</h3>
-              <p>${job.description}</p>
-              <p><strong>Posted by:</strong> ${job.posted_by}</p>
-              <p class="timestamp">Posted on: ${new Date(job.timestamp).toLocaleString()}</p>
-            </div>
-          `;
-        });
+    // Fetch job data
+    async function fetchJobs() {
+      try {
+        const res = await fetch("/jobs");
+        jobsData = await res.json();
+        displayJobs(jobsData);
+      } catch (error) {
+        jobsContainer.innerHTML = `<p style="text-align:center; color:red;">Failed to load jobs. Please try again later.</p>`;
       }
     }
 
-    loadJobs();
+    // Display jobs
+    function displayJobs(jobs) {
+      if (!jobs.length) {
+        jobsContainer.innerHTML = `<p style="text-align:center; opacity:0.7;">No job postings available right now.</p>`;
+        return;
+      }
+
+      jobsContainer.innerHTML = jobs.map(job => `
+        <div class="job-card">
+          <h2>${job.title}</h2>
+          <p><strong>Company:</strong> ${job.company}</p>
+          <p><strong>Location:</strong> ${job.location}</p>
+          <p><strong>Posted:</strong> ${job.posted_on}</p>
+          <a href="${job.link}" target="_blank">Apply Now</a>
+        </div>
+      `).join("");
+    }
+
+    // Search filter
+    searchInput.addEventListener("input", e => {
+      const term = e.target.value.toLowerCase();
+      const filtered = jobsData.filter(job =>
+        job.title.toLowerCase().includes(term) ||
+        job.company.toLowerCase().includes(term) ||
+        job.location.toLowerCase().includes(term)
+      );
+      displayJobs(filtered);
+    });
+
+    fetchJobs();
   </script>
 </body>
 </html>
