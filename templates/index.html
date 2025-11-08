@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Job Board | HospitalityStuff</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    .job {
+      background: white;
+      padding: 15px;
+      border-radius: 6px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin-bottom: 15px;
+    }
+    .timestamp {
+      font-size: 0.85rem;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <h1>Available Job Opportunities</h1>
+  <div id="job-list"></div>
+
+  <script>
+    async function loadJobs() {
+      const response = await fetch('/jobs');
+      const jobs = await response.json();
+      const jobList = document.getElementById('job-list');
+      jobList.innerHTML = '';
+
+      if (jobs.length === 0) {
+        jobList.innerHTML = '<p>No jobs available right now.</p>';
+      } else {
+        jobs.reverse().forEach(job => {
+          jobList.innerHTML += `
+            <div class="job">
+              <h3>${job.title}</h3>
+              <p>${job.description}</p>
+              <p><strong>Posted by:</strong> ${job.posted_by}</p>
+              <p class="timestamp">Posted on: ${new Date(job.timestamp).toLocaleString()}</p>
+            </div>
+          `;
+        });
+      }
+    }
+
+    loadJobs();
+  </script>
+</body>
+</html>

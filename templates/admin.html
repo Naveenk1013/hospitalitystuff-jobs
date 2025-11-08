@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin | Post Job</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #eef3f7;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    form {
+      max-width: 500px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    input, textarea, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 1rem;
+    }
+    button {
+      background: #4acaa8;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Post a New Job</h1>
+  <form id="job-form">
+    <input type="password" id="password" placeholder="Admin Password" required>
+    <input type="text" id="title" placeholder="Job Title" required>
+    <input type="text" id="company" placeholder="Company Name" required>
+    <input type="text" id="location" placeholder="Job Location" required>
+    <textarea id="description" placeholder="Job Description" rows="5" required></textarea>
+    <input type="url" id="link" placeholder="Application Link (Optional)">
+    <button type="submit">Post Job</button>
+  </form>
+
+  <script>
+    document.getElementById("job-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const job = {
+        password: document.getElementById("password").value,
+        title: document.getElementById("title").value,
+        company: document.getElementById("company").value,
+        location: document.getElementById("location").value,
+        description: document.getElementById("description").value,
+        link: document.getElementById("link").value
+      };
+
+      const response = await fetch("/jobs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(job)
+      });
+
+      const result = await response.json();
+      alert(result.message || result.error);
+
+      if (result.message) {
+        document.getElementById("job-form").reset();
+      }
+    });
+  </script>
+</body>
+</html>
